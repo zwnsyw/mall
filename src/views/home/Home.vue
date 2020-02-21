@@ -7,51 +7,10 @@
     <HomeSwiper :cbanner="banners"></HomeSwiper>
     <RecommendView :crecommend="recommend"></RecommendView>
     <FeaterView></FeaterView>
-    <TabControl :title="title"></TabControl>
-    <ul>
-      <li>1</li>
-      <li>2</li>
-      <li>3</li>
-      <li>4</li>
-      <li>5</li>
-      <li>6</li>
-      <li>7</li>
-      <li>8</li>
-      <li>9</li>
-      <li>10</li>
-      <li>11</li>
-      <li>12</li>
-      <li>13</li>
-      <li>14</li>
-      <li>15</li>
-      <li>16</li>
-      <li>17</li>
-      <li>18</li>
-      <li>19</li>
-      <li>20</li>
-    </ul>
-    <ul>
-      <li>1</li>
-      <li>2</li>
-      <li>3</li>
-      <li>4</li>
-      <li>5</li>
-      <li>6</li>
-      <li>7</li>
-      <li>8</li>
-      <li>9</li>
-      <li>10</li>
-      <li>11</li>
-      <li>12</li>
-      <li>13</li>
-      <li>14</li>
-      <li>15</li>
-      <li>16</li>
-      <li>17</li>
-      <li>18</li>
-      <li>19</li>
-      <li>20</li>
-    </ul>
+    <TabControl :title="title" @tabClick="tabClick"></TabControl>
+    <GoodsLists :goods='showGoods'></GoodsLists>
+    <!-- {{goods["pop"].list}} -->
+
     </div>
 </template>
 
@@ -61,15 +20,22 @@ import HomeSwiper from "./childcomps/HomeSwiper";
 import RecommendView from './childcomps/RecommendView'
 import FeaterView from './childcomps/FeaterView'
 import TabControl from 'components/content/tabControl/TabControl'
+import GoodsLists from 'components/content/goods/GoodsLists'
 
-import {getHomeMultidata} from "network/home";
+import {getHomeMultidata,getHomeGoods} from "network/home";
 export default {
     name: "Home",
     data() {
       return {
         banners: null,
         recommend: null,
-        title:['流行','新款','精选']
+        title:['流行','新款','精选'],
+        goods:{
+          "pop":{page: 0,list:[]},
+          "new":{page: 0,list:[]},
+          "sell": {page: 0,list:[]}
+        },
+        currentType: 'pop'
       }
     },
     components:{
@@ -77,19 +43,59 @@ export default {
         HomeSwiper,
         RecommendView,
         FeaterView,
-        TabControl
+        TabControl,
+        GoodsLists
     },
     created(){
-      getHomeMultidata().then(res=>{
+      this.getHomeMultidata(),
+      this.getHomeGoods("pop"),
+      this.getHomeGoods("sell"),
+      this.getHomeGoods("new")
+    },
+    computed:{
+      showGoods(){
+        return this.goods[this.currentType].list
+      }
+    },
+
+    methods:{
+      tabClick(index){
+        console.log(index)
+          switch(index){
+          case 0:
+            this.currentType = "pop";
+            break;
+          case 1:
+            this.currentType = 'new';
+            break;
+          case 2:
+            this.currentType = "sell";
+            break
+        }
+      },
+
+
+
+
+
+
+
+      getHomeMultidata(){
+        getHomeMultidata().then(res=>{
         console.log("res",res)
         this.banners = res.banner.list
         this.recommend = res.recommend.list
       })
+      },
+      getHomeGoods(type){
+        const page = this.goods[type].page + 1
+        getHomeGoods(type,page).then(res=>{
+          console.log("Goods",res)
+          this.goods[type].list.push(...res.list)
+          this.goods[type].page += 1;
+        })
+      }
     },
-
-    methods:{
-
-    }
 }
 </script>
 
